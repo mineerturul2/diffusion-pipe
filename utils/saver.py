@@ -151,6 +151,7 @@ class Saver:
         should_manually_quit = False
         save_signal_file = self.save_root / 'save'
         save_quit_signal_file = self.save_root / 'save_quit'
+        quit_signal_file = self.save_root / 'quit'
 
         if save_signal_file.exists() and save_signal_file.is_file():
             should_manually_save = True
@@ -163,6 +164,12 @@ class Saver:
             dist.barrier()
             if is_main_process():
                 os.remove(save_quit_signal_file)
+        elif quit_signal_file.exists() and quit_signal_file.is_file():
+            # Stop without saving a model. A checkpoint is still taken below if one is due, so the user can resume later.
+            should_manually_quit = True
+            dist.barrier()
+            if is_main_process():
+                os.remove(quit_signal_file)
 
         num_steps = self.config.get("num_steps", None)
         save_steps = self.config.get("save_every_n_steps", None)
