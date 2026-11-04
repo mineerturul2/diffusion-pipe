@@ -67,6 +67,9 @@ save_every_n_epochs = 2
 # You can also specify save frequency using either of these.
 #save_every_n_steps = 100
 #save_every_n_examples = 1000
+# Can save model weights every n number of minutes. Useful for long training runs where you want regular
+# saved models without calculating step intervals.
+#save_every_n_minutes = 60
 # Can checkpoint the training state every n number of epochs or minutes. Set only one of these. You can resume from checkpoints using the --resume_from_checkpoint flag.
 #checkpoint_every_n_epochs = 1
 checkpoint_every_n_minutes = 120
