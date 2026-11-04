@@ -17,6 +17,8 @@ def convert_state_dict_dtype(state_dict, dtype):
 
 
 last_checkpoint_time = None
+last_save_time = None
+
 def need_to_checkpoint(config, epoch=None):
     global last_checkpoint_time
 
@@ -40,6 +42,26 @@ def need_to_checkpoint(config, epoch=None):
             checkpoint = True
             last_checkpoint_time = current_time
     result = [checkpoint]
+    torch.distributed.broadcast_object_list(result, src=0)
+    return result[0]
+
+
+def need_to_save_model(config):
+    global last_save_time
+
+    if 'save_every_n_minutes' not in config:
+        return False
+
+    save = False
+    # rank 0 tracks if we need to save, broadcasts to everyone else
+    if is_main_process():
+        current_time = time.time()
+        if last_save_time is None:
+            last_save_time = current_time
+        elif (current_time - last_save_time) / 60 > config['save_every_n_minutes']:
+            save = True
+            last_save_time = current_time
+    result = [save]
     torch.distributed.broadcast_object_list(result, src=0)
     return result[0]
 
@@ -179,6 +201,9 @@ class Saver:
             should_manually_save = True
             should_manually_quit = True
         elif isinstance(save_steps, int) and step % save_steps == 0:
+            should_manually_save = True
+
+        if need_to_save_model(self.config):
             should_manually_save = True
 
         if should_manually_save:
