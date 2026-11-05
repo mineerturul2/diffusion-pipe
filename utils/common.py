@@ -102,6 +102,10 @@ def round_down_to_multiple(x, multiple):
     return int((x // multiple) * multiple)
 
 
+def round_up_to_multiple(x, multiple):
+    return int(math.ceil(x / multiple) * multiple)
+
+
 def time_shift(mu: float, sigma: float, t: torch.Tensor):
     return math.exp(mu) / (math.exp(mu) + (1 / t - 1) ** sigma)
 
