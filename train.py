@@ -552,6 +552,10 @@ if __name__ == '__main__':
     )
     global_batch_size = model_engine.train_micro_batch_size_per_gpu() * model_engine.gradient_accumulation_steps() * model_engine.grid.get_data_parallel_world_size()
     print(f'Global batch size = {global_batch_size}')
+    if is_main_process():
+        total_params = sum(p.numel() for p in pipeline_model.parameters())
+        trainable_params = sum(p.numel() for p in parameters_to_train)
+        print(f'Trainable parameters = {trainable_params:,} out of {total_params:,} total')
 
     if save_every_n_examples := config.pop('save_every_n_examples', None):
         config['save_every_n_steps'] = save_every_n_examples // global_batch_size
